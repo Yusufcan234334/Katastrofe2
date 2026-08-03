@@ -70,3 +70,31 @@ tahminler = model.predict(valx)
 
 skor = accuracy_score(valy, tahminler)
 print(skor)
+
+def submitolusturmatest(testverisi, katastrofe2):
+    print("Asıl test başlıyor...")
+    print("%10")
+    testverisi["Sex"] = testverisi["Sex"].map({"male": 1, "female": 0})
+    testverisi["Title"] = testverisi["Name"].str.extract(" ([A-Za-z]+)", expand=False)
+    testverisi["Title"] = testverisi["Title"].map(unvanlar)
+    passengerid = testverisi["PassengerId"].values
+    print("%40")
+    testverisi["Title"] = testverisi["Title"].fillna(0).astype(int)
+    testverisi["Age"] = testverisi.groupby("Title")["Age"].transform(lambda x: x.fillna(x.mean()))
+    print("%60")
+    testverisi = testverisi.drop(["Embarked", "Fare", "Ticket"], axis=1)
+    testverisi["Cabin"] = testverisi["Cabin"].str.extract("([A-Z])", expand=False)
+    print("%80")
+    testverisi["Cabin"] = testverisi["Cabin"].map(yerler)
+    testverisi["Cabin"] = testverisi["Cabin"].fillna(0).astype(int)
+    print("Veri Hazır!")
+    print("Veri dönüştürülüyor...")
+    x = testverisi.drop(["Name", "PassengerId"], axis="columns")
+    tahminler = model.predict(x)
+    sonuc = pd.DataFrame({"PassengerId": passengerid,"Survived": tahminler.astype(int)})
+    sonuc.to_csv("sonuc.csv", index=False)
+    print(sonuc.head())
+    print("Submission oluşturuldu!")
+
+if __name__ == "__main__":
+    submitolusturmatest(testverisi, model)
