@@ -1,0 +1,20 @@
+#model = lgb.LGBMClassifier(n_estimators=100, num_leaves=10, learning_rate=0.01, random_state=18) # 0.79 aldı
+#model = lgb.LGBMClassifier(n_estimators=300, num_leaves=8, learning_rate=0.05, random_state=18) # 0.83 aldı
+#model = lgb.LGBMClassifier(n_estimators=1000,num_leaves=8,learning_rate=0.01,random_state=18)
+#model = lgb.LGBMClassifier(n_estimators=1000,num_leaves=8,learning_rate=0.05,random_state=18)#0.81 aldı
+#model = lgb.LGBMClassifier(n_estimators=1000,num_leaves=8,learning_rate=0.01,random_state=1)#0.8539325842696629 aldı
+#model = lgb.LGBMClassifier(n_estimators=1000,num_leaves=8,learning_rate=0.01,random_state=42)#0.8539325842696629 aldı
+#model = lgb.LGBMClassifier(n_estimators=1000,num_leaves=8,learning_rate=0.01,random_state=33)#0.8539325842696629 aldı
+#model = lgb.LGBMClassifier(n_estimators=1000,num_leaves=8,learning_rate=0.01,random_state=95) #0.8539325842696629 aldı
+#demek ki random state bu noktada önemli değil
+#model = lgb.LGBMClassifier(n_estimators=100,num_leaves=15,learning_rate=0.05,random_state=1)#0.8539325842696629
+#model = lgb.LGBMClassifier(n_estimators=100,num_leaves=14,learning_rate=0.05,random_state=1)#0.8595505617977528
+#model = lgb.LGBMClassifier(n_estimators=100,num_leaves=13,learning_rate=0.05,random_state=1) #0.8651685393258427 bum beeee
+#model = lgb.LGBMClassifier(n_estimators=100,num_leaves=12,learning_rate=0.05,random_state=1) #0.8595505617977528
+#tamam num_leaves = 13 olmalı
+#model = lgb.LGBMClassifier(n_estimators=100,num_leaves=13,learning_rate=0.1,random_state=1)# 0.82 aldı
+#model = lgb.LGBMClassifier(n_estimators=100,num_leaves=13,learning_rate=0.06,random_state=1)# 0.84 aldı
+#artırdıkça düşüyor o zaman düşürelim (arkada test ettim 6-7-8 diye)
+#model = lgb.LGBMClassifier(n_estimators=150,num_leaves=13,learning_rate=0.03,random_state=1) #0.8707865168539326 supermasive big nigga balls işte bu dostum
+#ama yine de biraz daha deneyelim
+#model = lgb.LGBMClassifier(n_estimators=,num_leaves=13,learning_rate=0.02,random_state=1) yok olmuyor çok denedim

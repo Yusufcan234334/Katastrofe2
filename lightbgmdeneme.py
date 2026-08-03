@@ -62,7 +62,7 @@ valx = val.drop(["Survived", "Name", "PassengerId"], axis="columns")
 valy = val["Survived"]
 print("Tamam!")
 
-model = lgb.LGBMClassifier(n_estimators=100, num_leaves=10, learning_rate=0.01, random_state=18)
+model = lgb.LGBMClassifier(n_estimators=150,num_leaves=13,learning_rate=0.03,random_state=1)
 
 model.fit(x, y)
 
