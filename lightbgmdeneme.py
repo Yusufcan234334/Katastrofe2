@@ -98,3 +98,4 @@ def submitolusturmatest(testverisi, katastrofe2):
 
 if __name__ == "__main__":
     submitolusturmatest(testverisi, model)
+
