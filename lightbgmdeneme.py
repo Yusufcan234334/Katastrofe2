@@ -1,6 +1,5 @@
-import torch
-import torch.nn as siniragi
-from torch.utils.data import Dataset, DataLoader, TensorDataset
+#this code maked 0.77990 in kaggle titanic
+
 import pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score
@@ -98,4 +97,3 @@ def submitolusturmatest(testverisi, katastrofe2):
 
 if __name__ == "__main__":
     submitolusturmatest(testverisi, model)
-

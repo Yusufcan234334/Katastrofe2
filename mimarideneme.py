@@ -1,10 +1,12 @@
-#this code maked 0.77272 in kaggle titanic
+#this code maked 0.78708 in kaggle titanic
+# hmm i will name this arcthitecture (less english) Katastrofe 2026 5 ağustos gibi bir şey sanırım artık neyse
+
 import torch
 import torch.nn as siniragi
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import pandas as pd
-seed = 95
 trainseed = 33
+seed = 95
 torch.manual_seed(seed)
 print("Veri yükleniyor...")
 egitimverisi = pd.read_csv("titianicdatas/train.csv")
@@ -14,7 +16,6 @@ print("Veri yüklendi!")
 print("Veri temizleniyor....")
 debugdenemesifln = True
 mod = "normal"
-egitimtamammi = False
 
 unvanlar = {
     "Mr": 1,
@@ -45,6 +46,7 @@ yerler = {
     "G": 7,
     "T": 8
 }
+
 print("%10")
 egitimverisi["Sex"] = egitimverisi["Sex"].map({"male": 1, "female": 0})
 egitimverisi["Title"] = egitimverisi["Name"].str.extract(" ([A-Za-z]+)", expand = False)
@@ -62,12 +64,6 @@ val = egitimverisi.sample(frac=0.2, random_state=42)
 egitimverisi = egitimverisi.drop(val.index)
 
 print("Veri Hazır!")
-
-def veriicindebug():
-    print(f"Veri okundu. eğitim verisi satır ve sütun olarak: {egitimverisi.shape} test verisi ise: {testverisi.shape}")
-    print("--- Train Verisinin İlk 5 Satırı (Feature'lar) ---")
-    print(egitimverisi.head())
-
 print("Veri dönüştürülüyor...")
 x = egitimverisi.drop(["Survived", "Name", "PassengerId"], axis="columns")
 y = egitimverisi["Survived"]
@@ -88,37 +84,84 @@ print("Veri hazır!")
 print("Model hazırlanıyor...")
 
 class muhtisimmodel(siniragi.Module):
-    def __init__(self, neuroncountin, neuroncountout, katmansayisi):
+    def __init__(self, giris, cikis, katmansayisi, branchsayisi):
         super().__init__()
-        self.katmanlar = siniragi.ModuleList()
-        for i in range(katmansayisi):
-            self.katmanlar.append(siniragi.Linear(neuroncountin,neuroncountout))
-            if i == katmansayisi -1:
-                break
-            else:
-                neuroncountin = neuroncountout
-                neuroncountout = neuroncountout * 2
-        for i in range(katmansayisi):
-            if i == katmansayisi -1:
-                neuroncountin = neuroncountout
-                neuroncountout = 1
-            else:
-                neuroncountin = neuroncountout
-                neuroncountout //= 2
-            self.katmanlar.append(siniragi.Linear(neuroncountin, neuroncountout))
 
+        self.branchler = siniragi.ModuleList()
+        self.fusion_weights = siniragi.Parameter(torch.ones(branchsayisi))
+        self.residual_weight = siniragi.Parameter(torch.tensor(1.0))
+
+        for branch in range(branchsayisi):
+            katmanlar = siniragi.ModuleList()
+
+            neuroncountin = giris
+            neuroncountout = cikis
+
+            for i in range(katmansayisi):
+                katmanlar.append(
+                    siniragi.Linear(neuroncountin, neuroncountout)
+                )
+
+                if i == katmansayisi - 1:
+                    break
+                else:
+                    neuroncountin = neuroncountout
+                    neuroncountout = neuroncountout * 2
+
+
+            for i in range(katmansayisi):
+                if i == katmansayisi - 1:
+                    neuroncountin = neuroncountout
+                    neuroncountout //= 2
+                    neuroncountoutson = neuroncountout
+                else:
+                    neuroncountin = neuroncountout
+                    neuroncountout //= 2
+
+                katmanlar.append(
+                    siniragi.Linear(neuroncountin, neuroncountout)
+                )
+
+            self.branchler.append(katmanlar)
+
+        self.attention = siniragi.MultiheadAttention(
+            embed_dim=neuroncountoutson,
+            num_heads=4,
+            batch_first=True
+        )
+
+        self.output1 = siniragi.Linear(
+            neuroncountoutson,
+            1
+        )
 
     def forward(self, x):
-        for katmannum, katman in enumerate(self.katmanlar):
-            x = katman(x)
-            if katmannum != len(self.katmanlar) -1: x = torch.relu(x)
-        return x
+        ilkx = x
+        branchciktilari = []
 
-print("%30")
-katastrofe2 = muhtisimmodel(7,16, 1)
-print("%50")
+        for katmanlar in self.branchler:
+            x = ilkx
 
-#optimizer = torch.optim.SGD(katastrofe2.parameters(), lr=1e-3)
+            for katmannum, katman in enumerate(katmanlar):
+                x = katman(x)
+
+                if katmannum != len(katmanlar) - 1:
+                    x = torch.relu(x)
+
+            branchciktilari.append(x)
+
+        branchciktilari = torch.stack(branchciktilari,dim=1)
+        attended, attentionweights = self.attention(branchciktilari,branchciktilari,branchciktilari)
+        weights = torch.softmax(self.fusion_weights,dim=0)
+        fused = (attended+ self.residual_weight * branchciktilari)
+        fused = fused * weights.view(1, -1, 1)
+        fused = fused.sum(dim=1)
+        fused = self.output1(fused)
+        return fused
+
+
+katastrofe2 = muhtisimmodel(7,16,1,2)
+
 optimizer = torch.optim.AdamW(katastrofe2.parameters(), lr=1e-3)
 tahmin = katastrofe2(x)
 losshesaplayici = siniragi.BCEWithLogitsLoss()
@@ -155,16 +198,6 @@ def train(katastrofe2, loader, debug=True):
         else:
             break
 
-def isabetorani(katastrofe2):
-    with torch.no_grad():
-        tahmin = katastrofe2(x)
-        tahminler = (torch.sigmoid(tahmin) >= 0.5).float()
-        toplam = y.numel()
-        dogru = (tahminler == y).sum()
-        oran = dogru / toplam
-        print(f"Doğruluk: %{oran.item() * 100:.2f}")
-
-
 def wakywakyitstimeforval(katastrofe2, debug=True):
     with torch.no_grad():
         tahmin = katastrofe2(xamaval)
@@ -174,8 +207,8 @@ def wakywakyitstimeforval(katastrofe2, debug=True):
         oran = dogru / toplam
         print(f"Doğruluk: %{oran.item() * 100:.2f}")
         if debug:
-            if oran * 100 >= 82:
-                torch.save(katastrofe2.state_dict(),"katastrofe82igecti.pth")
+            if oran * 100 >= 83.70:
+                torch.save(katastrofe2.state_dict(),"katastrofe2iste83igecti.pth")
                 submitolusturmatest(testverisi, katastrofe2)
                 return False
             else: return True
@@ -216,29 +249,6 @@ def submitolusturmatest(testverisi, katastrofe2):
 
     print("sonuc.csv oluşturuldu!")
 
-def deneme():
-    debugdenemesifln = False
-    seed = 0
-    for i in range(0, 100):
-
-        seed = i
-        torch.manual_seed(seed)
-        generator = torch.Generator()
-        print(seed)
-        #for de in range(0, 50):
-            #trainseed = de
-            #generator = torch.Generator()
-            #print(trainseed)
-            #generator.manual_seed(trainseed)
-            #loader = DataLoader(dataset, batch_size=16, shuffle=True, generator=generator)
-        katastrofe2 = muhtisimmodel(7,16,1)
-        optimizer = torch.optim.AdamW(katastrofe2.parameters(), lr=1e-3)
-        train(katastrofe2, loader, debug=False)
-        wakywakyitstimeforval(katastrofe2,debug=False)
-
 
 if __name__ == "__main__":
-    if mod == "normal":
-        train(katastrofe2, loader, debug=True)
-    else:
-        deneme()
+    train(katastrofe2, loader, debug=True)
