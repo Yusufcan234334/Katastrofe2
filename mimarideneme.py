@@ -161,8 +161,14 @@ class muhtisimmodel(siniragi.Module):
 
 
 katastrofe2 = muhtisimmodel(7,16,1,2)
-
-optimizer = torch.optim.AdamW(katastrofe2.parameters(), lr=1e-3)
+# the first is adamw 1-e3
+#adam is maked:Bu çıktıda parametre sayısı 828 olup, elde edilen en yüksek doğruluk oranı %83.15 değeridir
+#SGD maked the baddest bads cracking bads
+# and RMSprop bad because adamw maked 83.71val and 0.35loss but rmsprop maked 83.71val and 0.36loss
+#now try the different lr's the first is 1e-3
+# ithink i dont need to lower that because its going bad just
+#sonuçta böyle aynı gibi gibi sadece yavaşlatıyor iyisini bulmak zor yavaşlatmanın da anlamı yok ayrıca diğer ilk denemede düz nn yaparken denemiştim bu da nn ile çalışıyor yani bunu değiştirmeye gerek yok
+optimizer = torch.optim.AdamW(katastrofe2.parameters(), lr=1e-4)
 tahmin = katastrofe2(x)
 losshesaplayici = siniragi.BCEWithLogitsLoss()
 loss = losshesaplayici(tahmin, y)
@@ -207,7 +213,7 @@ def wakywakyitstimeforval(katastrofe2, debug=True):
         oran = dogru / toplam
         print(f"Doğruluk: %{oran.item() * 100:.2f}")
         if debug:
-            if oran * 100 >= 83.70:
+            if oran * 100 >= 99:
                 torch.save(katastrofe2.state_dict(),"katastrofe2iste83igecti.pth")
                 submitolusturmatest(testverisi, katastrofe2)
                 return False
