@@ -41,17 +41,11 @@ class muhtisimmodel(siniragi.Module):
                 )
 
             self.branchler.append(katmanlar)
-
-        self.attention = siniragi.MultiheadAttention(
-            embed_dim=neuroncountoutson,
-            num_heads=4,
-            batch_first=True
-        )
-
-        self.output1 = siniragi.Linear(
-            neuroncountoutson,
-            cikis
-        )
+        heads = 4
+        while neuroncountoutson % heads != 0 and heads > 1:
+            heads //= 2
+        self.attention = siniragi.MultiheadAttention(embed_dim=neuroncountoutson,num_heads=heads,batch_first=True)
+        self.output1 = siniragi.Linear(neuroncountoutson,cikis)
 
     def forward(self, x):
         ilkx = x
