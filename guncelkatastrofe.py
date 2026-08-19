@@ -2,7 +2,7 @@ import torch
 import torch.nn as siniragi
 
 class muhtisimmodel(siniragi.Module):
-    def __init__(self, giris, cikis, katmansayisi, branchsayisi):
+    def __init__(self, giris, genislemecikis, katmansayisi, branchsayisi, cikis):
         super().__init__()
 
         self.branchler = siniragi.ModuleList()
@@ -13,7 +13,7 @@ class muhtisimmodel(siniragi.Module):
             katmanlar = siniragi.ModuleList()
 
             neuroncountin = giris
-            neuroncountout = cikis
+            neuroncountout = genislemecikis
 
             for i in range(katmansayisi):
                 katmanlar.append(
@@ -50,7 +50,7 @@ class muhtisimmodel(siniragi.Module):
 
         self.output1 = siniragi.Linear(
             neuroncountoutson,
-            1
+            cikis
         )
 
     def forward(self, x):
